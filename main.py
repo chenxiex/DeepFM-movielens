@@ -5,6 +5,8 @@ from torch.utils.data import DataLoader
 from torchfm.dataset.movielens import MovieLens1MDataset
 from torchfm.model.dfm import DeepFactorizationMachineModel
 
+import time
+
 class EarlyStopper(object):
     
     def __init__(self,num_trials,save_path):
@@ -61,13 +63,15 @@ def main():
     criterion=torch.nn.BCELoss()
     optimizer=torch.optim.Adam(params=model.parameters(),lr=0.001,weight_decay=1e-6)
     early_stopper=EarlyStopper(num_trials=2,save_path=f'./dfm.pt')
+    train_start_time=time.time()
     for epoch_i in range(100):
         train(model,optimizer,train_data_loader,criterion,device)
         auc=test(model,valid_data_loader,device)
         if (not early_stopper.is_continuable(model,auc)):
             break
+    train_end_time=time.time()
     auc=test(model,test_data_loader,device)
-    print(f'auc={auc}')
+    print(f'auc={auc},train_time={train_end_time-train_start_time}')
 
 if __name__=='__main__':
     main()
